@@ -312,6 +312,47 @@ bu satırları yazarken bile aklımda hep sen vardın Neslihan.
       }
     }, { passive: false });
 
+    // ------ GYROSCOPE DESTEĞİ EKLENDİ ------
+    // Bu değişkenle jiroskop hareketinden gelen x ekseni dönüş hızını depolayacağız
+    let gyroX = 0;
+
+    function handleGyro(event) {
+      // event.gamma: -90 (sola yatış) ... 0 ... 90 (sağa yatış)
+      // Burada gamma'yı kullanarak player.x'i güncelleyeceğiz
+
+      // Örneğin gamma değeri -30 ise player sola yatar, +30 ise sağa
+      if (!gameOver && gameStarted) {
+        const gamma = event.gamma; // Sol-sağ yatış
+
+        // gamma -45 ila +45 aralığında değer alır, biz bunu 0..canvas.width aralığına ölçekleyeceğiz
+        // Öncelikle -45..+45 aralığını 0..1 aralığına dönüştürelim:
+        let normGamma = (gamma + 45) / 90;
+        if (normGamma < 0) normGamma = 0;
+        if (normGamma > 1) normGamma = 1;
+
+        // Şimdi player.x'i canvas içinde hareket ettirelim:
+        player.x = normGamma * (canvas.width - player.width);
+      }
+    }
+
+    // iOS 13+ ve bazı tarayıcılarda gyroscope erişimi için izin istenebilir
+    function requestGyroPermission() {
+      if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+        DeviceMotionEvent.requestPermission()
+          .then(response => {
+            if (response === 'granted') {
+              window.addEventListener('deviceorientation', handleGyro);
+            } else {
+              console.log('Gyroscope izni reddedildi.');
+            }
+          })
+          .catch(console.error);
+      } else {
+        // İzin gerekmeyen cihazlarda doğrudan dinle
+        window.addEventListener('deviceorientation', handleGyro);
+      }
+    }
+
     startButton.addEventListener('click', () => {
       gameStarted = true;
       gameOver = false;
@@ -326,8 +367,12 @@ bu satırları yazarken bile aklımda hep sen vardın Neslihan.
       endMessage.style.display = 'none';
       updateCounter();
 
+      // Gyroscope izni iste ve başlat
+      requestGyroPermission();
+
       updateGame();
     });
+    // ----------------------------------------
 
     // Pencere yeniden boyutlandığında canvas konum ve ölçek kontrolü (isteğe bağlı)
     window.addEventListener('resize', () => {
