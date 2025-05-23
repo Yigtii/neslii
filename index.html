@@ -166,7 +166,6 @@
         }
       });
 
-      // 10 saniyede bir mesaj gizle
       if (Date.now() - lastMessageTime > messageInterval) {
         messageBox.style.display = "none";
       }
@@ -189,7 +188,7 @@
       if (startX !== null) {
         const currentX = e.touches[0].clientX;
         const diff = currentX - startX;
-        player.x += diff * 0.1;
+        player.x += diff * 0.2; // Hassasiyeti 2 kat arttırıldı
         player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
         startX = currentX;
       }
