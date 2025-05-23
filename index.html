@@ -208,19 +208,39 @@
       }
     });
 
-    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-      startButton.addEventListener('click', () => {
-        DeviceOrientationEvent.requestPermission().then(response => {
-          if (response === 'granted') {
-            window.addEventListener("deviceorientation", (e) => {
-              const tilt = e.gamma;
-              if (tilt) {
-                player.x += tilt * 0.5;
-                player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
-              }
-            });
-          }
-        }).catch(console.error);
+    function enableGyroControl() {
+      window.addEventListener("deviceorientation", (e) => {
+        const tilt = e.gamma;
+        if (tilt) {
+          player.x += tilt * 0.5;
+          player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
+        }
       });
-    } else {
-      window.addEventListener("
+    }
+
+    startButton.addEventListener("click", async () => {
+      try {
+        await bgm.play();
+      } catch {}
+
+      if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+        try {
+          const response = await DeviceOrientationEvent.requestPermission();
+          if (response === 'granted') {
+            enableGyroControl();
+          }
+        } catch (e) {
+          console.error("Gyroscope permission error:", e);
+        }
+      } else {
+        enableGyroControl();
+      }
+
+      startButton.style.display = "none";
+      canvas.style.display = "block";
+      counterBox.style.display = "block";
+      updateGame();
+    });
+  </script>
+</body>
+</html>
