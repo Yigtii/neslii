@@ -15,7 +15,6 @@
       display: block;
       margin: 0 auto;
       background-color: #ffecf2;
-      touch-action: none;
     }
     #messageBox, #counterBox, #startButton {
       position: absolute;
@@ -28,20 +27,20 @@
       color: #e91e63;
     }
     #messageBox {
-      top: 20px;
+      top: 600px;
       display: none;
       max-width: 320px;
       text-align: center;
     }
     #counterBox {
-      top: 60px;
+      top: 20px;
       display: none;
     }
     #endMessage {
-      position: absolute;
-      top: 30%;
+      position: fixed;
+      bottom: 10px;
       left: 50%;
-      transform: translate(-50%, -50%);
+      transform: translateX(-50%);
       background-color: rgba(255, 255, 255, 0.95);
       color: #d81b60;
       padding: 25px;
@@ -50,6 +49,7 @@
       text-align: center;
       display: none;
       max-width: 350px;
+      z-index: 10;
     }
     #startButton {
       top: 250px;
@@ -83,7 +83,7 @@
       "Seninle tanıştığım için asla pişman değilim.",
       "Beraber geçirdiğimiz zaman en kıymetlisi.",
       "Seninle her şey daha anlamlı.",
-      "Utandığında yanaklarının kızarması, içimi ısıtıyor.",
+      "Utandığında yanaklarının kızarması, içimi ısıtıyor 😝.",
       "İyi ki varsın, beni mutlu ediyorsun.",
       "Kalbim ölene kadar seninle.",
     ];
@@ -92,6 +92,7 @@
     let gameOver = false;
     let lastMessageTime = 0;
     const messageInterval = 10000;
+    let isMouseDown = false;
 
     function drawPlayer() {
       ctx.fillStyle = "#e91e63";
@@ -173,34 +174,21 @@
       requestAnimationFrame(updateGame);
     }
 
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "ArrowLeft") player.x -= 15;
-      if (e.key === "ArrowRight") player.x += 15;
-      player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
+    canvas.addEventListener("mousedown", () => {
+      isMouseDown = true;
     });
 
-    let startX = null;
-    canvas.addEventListener("touchstart", (e) => {
-      startX = e.touches[0].clientX;
+    canvas.addEventListener("mouseup", () => {
+      isMouseDown = false;
     });
 
-    canvas.addEventListener("touchmove", (e) => {
-      if (startX !== null) {
-        const currentX = e.touches[0].clientX;
-        const diff = currentX - startX;
-        player.x += diff * 5.0; // Hassasiyet %500
+    canvas.addEventListener("mousemove", (e) => {
+      if (isMouseDown) {
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const direction = mouseX - (player.x + player.width / 2);
+        player.x += direction * 0.1;
         player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
-        startX = currentX;
-      }
-    });
-
-    window.addEventListener("deviceorientation", (e) => {
-      if (!gameOver && canvas.style.display !== "none") {
-        const tilt = e.gamma; // yatay eğim
-        if (tilt) {
-          player.x += tilt * 0.5; // yön duyarlılığı
-          player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
-        }
       }
     });
 
