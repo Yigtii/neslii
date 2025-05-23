@@ -91,7 +91,7 @@
     const targetCount = 50;
     let gameOver = false;
     let lastMessageTime = 0;
-    const messageInterval = 10000; // 10 saniye
+    const messageInterval = 10000;
 
     function drawPlayer() {
       ctx.fillStyle = "#e91e63";
@@ -188,9 +188,19 @@
       if (startX !== null) {
         const currentX = e.touches[0].clientX;
         const diff = currentX - startX;
-        player.x += diff * 1.0; // Hassasiyet 500%
+        player.x += diff * 5.0; // Hassasiyet %500
         player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
         startX = currentX;
+      }
+    });
+
+    window.addEventListener("deviceorientation", (e) => {
+      if (!gameOver && canvas.style.display !== "none") {
+        const tilt = e.gamma; // yatay eğim
+        if (tilt) {
+          player.x += tilt * 0.5; // yön duyarlılığı
+          player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
+        }
       }
     });
 
