@@ -150,6 +150,10 @@
   <div id="messageBox"></div>
   <div id="endMessage"></div>
 
+  <!-- Ses dosyaları -->
+  <audio id="soundHeart" src="klp.mp3" preload="auto"></audio>
+  <audio id="soundMsg" src="msg.mp3" preload="auto"></audio>
+
   <script>
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
@@ -157,6 +161,10 @@
     const messageBox = document.getElementById('messageBox');
     const counterBox = document.getElementById('counterBox');
     const endMessage = document.getElementById('endMessage');
+
+    // Ses elementleri
+    const soundHeart = document.getElementById('soundHeart');
+    const soundMsg = document.getElementById('soundMsg');
 
     let player = { x: 175, y: 570, width: 50, height: 20 };
     let hearts = [];
@@ -170,7 +178,7 @@
       "Seninle tanıştığım için asla pişman değilim.",
       "Beraber geçirdiğimiz zaman en kıymetlisi.",
       "Seninle her şey daha anlamlı.",
-      "Utandığında yanaklarının kızarması, içimi ısıtıyor.",
+      "Utandığında yanaklarının kızarması, içimi ısıtıyor 🤪.",
       "İyi ki varsın, beni mutlu ediyorsun.",
       "Kalbim ölene kadar seninle."
     ];
@@ -184,7 +192,6 @@
     }
 
     function drawHeart(h) {
-      // Kalp boyutu ekran genişliğine göre ayarlandı
       let fontSize = 30;
       if (window.innerWidth <= 450) fontSize = 24;
       ctx.font = `${fontSize}px Arial`;
@@ -218,6 +225,9 @@
           caughtCount++;
           updateCounter();
 
+          // Kalp toplama sesi
+          playSound(soundHeart);
+
           if (caughtCount % 10 === 0) {
             showMessage(messages[(caughtCount / 10) - 1]);
           }
@@ -250,6 +260,9 @@
       messageBox.textContent = text;
       messageBox.classList.add('visible');
 
+      // Mesaj sesi
+      playSound(soundMsg);
+
       messageTimeoutId = setTimeout(() => {
         messageBox.classList.remove('visible');
       }, 10000);
@@ -271,6 +284,17 @@ Sadece bir oyun değil bu,
 bu satırları yazarken bile aklımda hep sen vardın Neslihan.
 
 İyi ki hayatımdasın, seni seviyorum.`;
+    }
+
+    // Ses oynatma fonksiyonu
+    function playSound(audioElement) {
+      // Aynı anda tekrar oynatılmak istendiğinde sesi başa alıp oynatır
+      audioElement.pause();
+      audioElement.currentTime = 0;
+      audioElement.play().catch(e => {
+        // Oynatma hataları burada yakalanabilir (örneğin kullanıcı etkileşimi olmadan otomatik oynatma engellenirse)
+        // İstersen burada hata logu veya sessizce geçiş yapabilirsin
+      });
     }
 
     let isMouseDown = false;
@@ -312,47 +336,6 @@ bu satırları yazarken bile aklımda hep sen vardın Neslihan.
       }
     }, { passive: false });
 
-    // ------ GYROSCOPE DESTEĞİ EKLENDİ ------
-    // Bu değişkenle jiroskop hareketinden gelen x ekseni dönüş hızını depolayacağız
-    let gyroX = 0;
-
-    function handleGyro(event) {
-      // event.gamma: -90 (sola yatış) ... 0 ... 90 (sağa yatış)
-      // Burada gamma'yı kullanarak player.x'i güncelleyeceğiz
-
-      // Örneğin gamma değeri -30 ise player sola yatar, +30 ise sağa
-      if (!gameOver && gameStarted) {
-        const gamma = event.gamma; // Sol-sağ yatış
-
-        // gamma -45 ila +45 aralığında değer alır, biz bunu 0..canvas.width aralığına ölçekleyeceğiz
-        // Öncelikle -45..+45 aralığını 0..1 aralığına dönüştürelim:
-        let normGamma = (gamma + 45) / 90;
-        if (normGamma < 0) normGamma = 0;
-        if (normGamma > 1) normGamma = 1;
-
-        // Şimdi player.x'i canvas içinde hareket ettirelim:
-        player.x = normGamma * (canvas.width - player.width);
-      }
-    }
-
-    // iOS 13+ ve bazı tarayıcılarda gyroscope erişimi için izin istenebilir
-    function requestGyroPermission() {
-      if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
-        DeviceMotionEvent.requestPermission()
-          .then(response => {
-            if (response === 'granted') {
-              window.addEventListener('deviceorientation', handleGyro);
-            } else {
-              console.log('Gyroscope izni reddedildi.');
-            }
-          })
-          .catch(console.error);
-      } else {
-        // İzin gerekmeyen cihazlarda doğrudan dinle
-        window.addEventListener('deviceorientation', handleGyro);
-      }
-    }
-
     startButton.addEventListener('click', () => {
       gameStarted = true;
       gameOver = false;
@@ -367,16 +350,7 @@ bu satırları yazarken bile aklımda hep sen vardın Neslihan.
       endMessage.style.display = 'none';
       updateCounter();
 
-      // Gyroscope izni iste ve başlat
-      requestGyroPermission();
-
       updateGame();
-    });
-    // ----------------------------------------
-
-    // Pencere yeniden boyutlandığında canvas konum ve ölçek kontrolü (isteğe bağlı)
-    window.addEventListener('resize', () => {
-      // Eğer isterseniz burada yeniden boyutlandırma için kod ekleyebilirsiniz.
     });
   </script>
 </body>
