@@ -15,6 +15,7 @@
       display: block;
       margin: 0 auto;
       background-color: #ffecf2;
+      touch-action: none;
     }
     #messageBox, #counterBox, #startButton {
       position: absolute;
@@ -83,7 +84,7 @@
       "Seninle tanıştığım için asla pişman değilim.",
       "Beraber geçirdiğimiz zaman en kıymetlisi.",
       "Seninle her şey daha anlamlı.",
-      "Utandığında yanaklarının kızarması, içimi ısıtıyor 😝.",
+      "Utandığında yanaklarının kızarması, içimi ısıtıyor.",
       "İyi ki varsın, beni mutlu ediyorsun.",
       "Kalbim ölene kadar seninle.",
     ];
@@ -93,6 +94,7 @@
     let lastMessageTime = 0;
     const messageInterval = 10000;
     let isMouseDown = false;
+    let startX = null;
 
     function drawPlayer() {
       ctx.fillStyle = "#e91e63";
@@ -192,13 +194,33 @@
       }
     });
 
-    startButton.addEventListener("click", () => {
-      bgm.play().catch(() => {});
-      startButton.style.display = "none";
-      canvas.style.display = "block";
-      counterBox.style.display = "block";
-      updateGame();
+    canvas.addEventListener("touchstart", (e) => {
+      startX = e.touches[0].clientX;
     });
-  </script>
-</body>
-</html>
+
+    canvas.addEventListener("touchmove", (e) => {
+      if (startX !== null) {
+        const currentX = e.touches[0].clientX;
+        const diff = currentX - startX;
+        player.x += diff * 5.0;
+        player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
+        startX = currentX;
+      }
+    });
+
+    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+      startButton.addEventListener('click', () => {
+        DeviceOrientationEvent.requestPermission().then(response => {
+          if (response === 'granted') {
+            window.addEventListener("deviceorientation", (e) => {
+              const tilt = e.gamma;
+              if (tilt) {
+                player.x += tilt * 0.5;
+                player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
+              }
+            });
+          }
+        }).catch(console.error);
+      });
+    } else {
+      window.addEventListener("
