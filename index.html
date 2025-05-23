@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kalp Toplayıcı</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: linear-gradient(to bottom, #ffd1dc, #fff);
+      font-family: sans-serif;
+    }
+    #gameCanvas {
+      display: block;
+      margin: 0 auto;
+      background-color: #ffecf2;
+      touch-action: none;
+    }
+    #messageBox, #counterBox, #startButton {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255,255,255,0.8);
+      padding: 8px 15px;
+      border-radius: 10px;
+      font-size: 16px;
+      color: #e91e63;
+    }
+    #messageBox {
+      top: 20px;
+      display: none;
+      max-width: 320px;
+      text-align: center;
+    }
+    #counterBox {
+      top: 60px;
+      display: none;
+    }
+    #endMessage {
+      position: absolute;
+      top: 30%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: rgba(255, 255, 255, 0.95);
+      color: #d81b60;
+      padding: 25px;
+      border-radius: 15px;
+      font-size: 18px;
+      text-align: center;
+      display: none;
+      max-width: 350px;
+    }
+    #startButton {
+      top: 250px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <audio id="bgm" loop preload="auto">
+    <source src="https://cdn.pixabay.com/audio/2022/03/15/audio_0e52e5f2f0.mp3" type="audio/mpeg" />
+  </audio>
+
+  <button id="startButton">Oyuna Başla ❤️</button>
+  <canvas id="gameCanvas" width="400" height="600" style="display:none;"></canvas>
+  <div id="messageBox"></div>
+  <div id="counterBox">0/50</div>
+  <div id="endMessage"></div>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const messageBox = document.getElementById("messageBox");
+    const counterBox = document.getElementById("counterBox");
+    const endMessage = document.getElementById("endMessage");
+    const bgm = document.getElementById("bgm");
+    const startButton = document.getElementById("startButton");
+
+    let player = { x: 175, y: 570, width: 50, height: 20 };
+    let hearts = [];
+    let messages = [
+      "İlk günkü heyecanla seni seviyorum 💖",
+      "Beraber geçirdiğimiz zaman en kıymetlisi ⏳",
+      "Seninle her şey daha anlamlı 💫",
+      "Her gülüşün içimi ısıtıyor ☀️",
+      "İyi ki varsın ❤️",
+      "Kalbim hep seninle 🥰",
+      "Sana her baktığımda geleceğimi görüyorum 🌈",
+      "Sen en güzel alışkanlığımsın 💕",
+      "Aklımda hep sen varsın 💭",
+      "Bu kalpler sadece sana ait 💌"
+    ];
+    let caughtCount = 0;
+    const targetCount = 50;
+    let gameOver = false;
+    let lastMessageTime = 0;
+    const messageInterval = 10000; // 10 saniye
+
+    function drawPlayer() {
+      ctx.fillStyle = "#e91e63";
+      ctx.fillRect(player.x, player.y, player.width, player.height);
+    }
+
+    function drawHeart(h) {
+      ctx.font = "24px Arial";
+      ctx.fillText("❤️", h.x, h.y);
+    }
+
+    function showMessage(msg) {
+      messageBox.textContent = msg;
+      messageBox.style.display = "block";
+      lastMessageTime = Date.now();
+    }
+
+    function updateCounter() {
+      counterBox.textContent = `${caughtCount}/${targetCount}`;
+    }
+
+    function showEndMessage() {
+      endMessage.style.display = "block";
+      endMessage.innerHTML = `
+        Her ne kadar odun olsan da,<br>
+        ben seni bu halinle seviyorum.<br><br>
+        Bana ilaç gibi geliyorsun 💊<br>
+        ve seninle geçirdiğim her vakitten keyif alıyorum.<br><br>
+        Sadece bir oyun değil bu,<br>
+        bu satırları yazarken bile aklımda hep sen vardın.<br><br>
+        İyi ki hayatımdasın ❤️
+      `;
+    }
+
+    function updateGame() {
+      if (gameOver) return;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawPlayer();
+      updateCounter();
+
+      if (Math.random() < 0.008) {
+        hearts.push({ x: Math.random() * (canvas.width - 30) + 10, y: 0 });
+      }
+
+      hearts.forEach((h, i) => {
+        h.y += 2;
+        drawHeart(h);
+
+        if (
+          h.x > player.x &&
+          h.x < player.x + player.width &&
+          h.y > player.y &&
+          h.y < player.y + player.height
+        ) {
+          caughtCount++;
+          updateCounter();
+
+          if (caughtCount % 10 === 0 && messages.length > 0) {
+            const msgIndex = Math.floor(caughtCount / 10) - 1;
+            if (msgIndex < messages.length) {
+              showMessage(messages[msgIndex]);
+            }
+          }
+
+          hearts.splice(i, 1);
+
+          if (caughtCount >= targetCount) {
+            gameOver = true;
+            showEndMessage();
+          }
+        }
+      });
+
+      // 10 saniyede bir mesaj gizle
+      if (Date.now() - lastMessageTime > messageInterval) {
+        messageBox.style.display = "none";
+      }
+
+      requestAnimationFrame(updateGame);
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft") player.x -= 15;
+      if (e.key === "ArrowRight") player.x += 15;
+      player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
+    });
+
+    let startX = null;
+    canvas.addEventListener("touchstart", (e) => {
+      startX = e.touches[0].clientX;
+    });
+
+    canvas.addEventListener("touchmove", (e) => {
+      if (startX !== null) {
+        const currentX = e.touches[0].clientX;
+        const diff = currentX - startX;
+        player.x += diff * 0.1;
+        player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
+        startX = currentX;
+      }
+    });
+
+    startButton.addEventListener("click", () => {
+      bgm.play().catch(() => {});
+      startButton.style.display = "none";
+      canvas.style.display = "block";
+      counterBox.style.display = "block";
+      updateGame();
+    });
+  </script>
+</body>
+</html>
