@@ -188,7 +188,7 @@
       if (startX !== null) {
         const currentX = e.touches[0].clientX;
         const diff = currentX - startX;
-        player.x += diff * 0.2; // Hassasiyeti 2 kat arttırıldı
+        player.x += diff * 1.0; // Hassasiyet 500%
         player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
         startX = currentX;
       }
