@@ -2,274 +2,108 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>Kalp Toplama Oyunu</title>
+  <title>Benimle Barışır mısın?</title>
   <style>
     body {
-      margin: 0;
-      background: linear-gradient(to bottom, #ffd1dc, #fff);
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      overflow: hidden;
-      user-select: none;
-    }
-
-    #lockScreen {
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(to bottom right, #ffe6f0, #ffccf2);
       display: flex;
       flex-direction: column;
-      justify-content: center;
       align-items: center;
+      justify-content: center;
       height: 100vh;
+      margin: 0;
+    }
+    h1 {
+      font-size: 32px;
+      color: #99004d;
       text-align: center;
-      padding: 20px;
-      box-sizing: border-box;
-      color: #880e4f;
-      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    p {
       font-size: 20px;
-    }
-
-    #passwordInput {
-      padding: 10px;
-      font-size: 18px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      margin-top: 20px;
-    }
-
-    #unlockButton {
-      padding: 10px 20px;
-      margin-top: 10px;
-      font-size: 18px;
-      background: #e91e63;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-
-    #gameCanvas {
-      background-color: #ffecf2;
-      margin: 20px auto;
-      border-radius: 10px;
-      box-shadow: 0 0 15px rgba(233, 30, 99, 0.6);
-      display: none;
-      width: 400px;
-      height: 600px;
-    }
-
-    #startButton {
-      display: none;
-      margin: 20px auto;
-      background: #e91e63;
-      color: white;
-      border: none;
-      padding: 12px 24px;
-      font-size: 18px;
-      border-radius: 12px;
-      cursor: pointer;
-      box-shadow: 0 4px 8px rgba(233,30,99,0.4);
-    }
-
-    #startButton:hover {
-      background: #c2185b;
-    }
-
-    #counterBox {
+      color: #333;
       text-align: center;
-      font-size: 22px;
-      color: #e91e63;
-      font-weight: 700;
-      user-select: none;
-      margin-top: 10px;
-      display: none;
+      margin-bottom: 30px;
     }
-
-    #messageBox, #endMessage {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: #ffd1dcdd;
-      padding: 20px 25px;
+    #buttons {
+      display: flex;
+      gap: 20px;
+    }
+    button {
+      padding: 20px 40px;
+      font-size: 20px;
+      border: none;
       border-radius: 15px;
-      box-shadow: 0 0 15px #e91e63;
-      font-size: 20px;
-      font-weight: bold;
-      color: #880e4f;
-      display: none;
-      max-width: 90vw;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    #yesBtn {
+      background-color: #66ff99;
+      color: #004d00;
+    }
+    #noBtn {
+      background-color: #ff6666;
+      color: #660000;
+    }
+    #message {
+      margin-top: 30px;
+      font-size: 22px;
+      color: #cc0066;
+      height: 40px;
       text-align: center;
     }
   </style>
 </head>
 <body>
+  <h1>Benimle barışır mısın?</h1>
+  <p>Seni çooooooooooook özledim... Yeter küslük!</p>
 
-  <div id="lockScreen">
-    Kezban Can barışmak isteyene kadar bu site kapalı. Görüşürüz.
-    <input type="password" id="passwordInput" placeholder="Şifre">
-    <button id="unlockButton">Giriş Yap</button>
+  <div id="buttons">
+    <button id="yesBtn">Evet</button>
+    <button id="noBtn">Hayır</button>
   </div>
 
-  <button id="startButton">Oyuna Başla ❤️</button>
-  <canvas id="gameCanvas" width="400" height="600"></canvas>
-  <div id="counterBox"></div>
-  <div id="messageBox"></div>
-  <div id="endMessage"></div>
-
-  <audio id="soundHeart" src="klp.mp3" preload="auto"></audio>
-  <audio id="soundMsg" src="msg.mp3" preload="auto"></audio>
+  <div id="message"></div>
 
   <script>
-    const lockScreen = document.getElementById('lockScreen');
-    const passwordInput = document.getElementById('passwordInput');
-    const unlockButton = document.getElementById('unlockButton');
-    const startButton = document.getElementById('startButton');
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    const counterBox = document.getElementById('counterBox');
-    const messageBox = document.getElementById('messageBox');
-    const endMessage = document.getElementById('endMessage');
-    const soundHeart = document.getElementById('soundHeart');
-    const soundMsg = document.getElementById('soundMsg');
-
-    const correctPassword = "2202";
-
-    unlockButton.addEventListener('click', () => {
-      if (passwordInput.value === correctPassword) {
-        lockScreen.style.display = 'none';
-        startButton.style.display = 'block';
-        counterBox.style.display = 'block';
-      } else {
-        alert("Şifre yanlış!");
-      }
-    });
-
-    let player = { x: 175, y: 570, width: 50, height: 20 };
-    let hearts = [];
-    let caughtCount = 0;
-    const targetCount = 50;
-    let gameStarted = false;
-    let gameOver = false;
+    const yesBtn = document.getElementById("yesBtn");
+    const noBtn = document.getElementById("noBtn");
+    const message = document.getElementById("message");
 
     const messages = [
-      "Seninle tanıştığım için asla pişman değilim.",
-      "Beraber geçirdiğimiz zaman en kıymetlisi.",
-      "Seninle her şey daha anlamlı.",
-      "Utandığında yanaklarının kızarması, içimi ısıtıyor 🤪.",
-      "İyi ki varsın, beni mutlu ediyorsun.",
-      "Kalbim ölene kadar seninle."
+      "lütfeeeeeeen ❤️",
+      "nolur yapma böyle pislikmisin",
+      "sıkıntısın yaniii",
+      "hadi amaaa",
+      "uzuluyom bak",
+      "bayım lutfeeeen",
+      "cok ozledım ama hayır ya"
     ];
+    let noClickCount = 0;
 
-    function drawPlayer() {
-      ctx.fillStyle = '#e91e63';
-      ctx.fillRect(player.x, player.y, player.width, player.height);
-    }
+    noBtn.addEventListener("click", () => {
+      noClickCount++;
 
-    function drawHeart(h) {
-      ctx.font = '30px Arial';
-      ctx.fillText('❤️', h.x, h.y);
-    }
+      // Küçült hayır butonu
+      const scale = Math.max(1 - noClickCount * 0.1, 0.2);
+      noBtn.style.transform = `scale(${scale})`;
 
-    function spawnHeart() {
-      const x = Math.random() * (canvas.width - 30) + 15;
-      hearts.push({ x: x, y: 0 });
-    }
+      // Büyüt evet butonu
+      const yesScale = 1 + noClickCount * 0.1;
+      yesBtn.style.transform = `scale(${yesScale})`;
 
-    function updateCounter() {
-      counterBox.textContent = `Toplanan Kalpler: ${caughtCount} / ${targetCount}`;
-    }
-
-    function showMessage(text) {
-      messageBox.textContent = text;
-      messageBox.style.display = 'block';
-      soundMsg.play();
-      setTimeout(() => {
-        messageBox.style.display = 'none';
-      }, 5000);
-    }
-
-    function showEndMessage() {
-      endMessage.textContent =
-`Her ne kadar odun olsan da,
-ben seni bu halinle seviyorum.
-
-Bana ilaç gibi geliyorsun 
-ve seninle geçirdiğim her vakitten keyif alıyorum.
-
-Sadece bir oyun değil bu,
-bu satırları yazarken bile aklımda hep sen vardın Neslihan.
-
-İyi ki hayatımdasın, seni seviyorum.`;
-      endMessage.style.display = 'block';
-    }
-
-    function updateGame() {
-      if (!gameStarted || gameOver) return;
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      for (let i = hearts.length - 1; i >= 0; i--) {
-        hearts[i].y += 2;
-        drawHeart(hearts[i]);
-
-        if (
-          hearts[i].x > player.x &&
-          hearts[i].x < player.x + player.width &&
-          hearts[i].y > player.y &&
-          hearts[i].y < player.y + player.height
-        ) {
-          hearts.splice(i, 1);
-          caughtCount++;
-          updateCounter();
-          soundHeart.play();
-
-          if (caughtCount % 10 === 0 && caughtCount / 10 - 1 < messages.length) {
-            showMessage(messages[caughtCount / 10 - 1]);
-          }
-
-          if (caughtCount >= targetCount) {
-            gameOver = true;
-            showEndMessage();
-            return;
-          }
-        } else if (hearts[i].y > canvas.height) {
-          hearts.splice(i, 1);
-        }
-      }
-
-      drawPlayer();
-      if (Math.random() < 0.02) spawnHeart();
-
-      requestAnimationFrame(updateGame);
-    }
-
-    let isMouseDown = false;
-    canvas.addEventListener('mousedown', () => isMouseDown = true);
-    canvas.addEventListener('mouseup', () => isMouseDown = false);
-    canvas.addEventListener('mousemove', e => {
-      if (isMouseDown && !gameOver) {
-        const rect = canvas.getBoundingClientRect();
-        player.x = e.clientX - rect.left - player.width / 2;
-      }
+      // Yeni mesaj göster
+      const index = noClickCount % messages.length;
+      message.textContent = messages[index];
     });
 
-    canvas.addEventListener('touchmove', e => {
-      e.preventDefault();
-      const rect = canvas.getBoundingClientRect();
-      const touchX = e.touches[0].clientX - rect.left;
-      player.x = touchX - player.width / 2;
-    }, { passive: false });
-
-    startButton.addEventListener('click', () => {
-      gameStarted = true;
-      gameOver = false;
-      caughtCount = 0;
-      player.x = 175;
-      hearts = [];
-      canvas.style.display = 'block';
-      endMessage.style.display = 'none';
-      messageBox.style.display = 'none';
-      updateCounter();
-      updateGame();
+    yesBtn.addEventListener("click", () => {
+      message.textContent = "Yiaaaaaa işte bu! Seni çok seviyorum! 💖🥰";
+      yesBtn.disabled = true;
+      noBtn.disabled = true;
+      yesBtn.style.transform = "scale(1)";
+      noBtn.style.transform = "scale(1)";
     });
   </script>
 </body>
